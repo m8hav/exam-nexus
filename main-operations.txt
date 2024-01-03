@@ -1,0 +1,18 @@
+students
+  edit user details
+  view courses
+  view exam schedule
+  attend exams
+  view/appeal results
+  view exam analysis
+
+professors
+  edit user details
+  view/add/remove/change course
+  view/add/remove/change exam schedule
+  view/add/remove/change exam results
+  view/approve/reject appeals
+
+admins
+  view/add/remove students
+  view/add/remove professors
