@@ -3,73 +3,78 @@ import { Schema, model } from 'mongoose';
 // Student Schema
 const StudentSchema = new Schema({
   _id: ObjectId,
+  id: String,
   username: String,
   password: String,
   personalDetails: {
     name: String,
     email: String,
     phone: String,
-    address: String,
   },
   batch: String,
   enrolledCourse: { type: Schema.Types.ObjectId, ref: 'Course' },
   enrolledSubjects: [{ type: Schema.Types.ObjectId, ref: 'Subject' }],
-  enrollmentHistory: [{
+  pastSemestersEnrolledSubjects: [{
     semester: String,
     subjects: [{ type: Schema.Types.ObjectId, ref: 'Subject' }],
   }],
   analytics: {
-    totalExamsAttended: Number,
-    averageMarksPercentage: Number,
-    courseRank: Number,
-    semesterRanks: [
-      {
-        semester: String,
-        rank: Number,
-      },
-    ],
-    subjectRanks: [
-      {
-        subject: { type: Schema.Types.ObjectId, ref: 'Subject' },
-        rank: Number,
-      },
-    ],
+    semester: [{
+      semester: String,
+      totalExamsAttended: Number,
+      totalMarks: Number,
+      semesterRank: Number,
+      subjectRanks: [
+        {
+          subject: { type: Schema.Types.ObjectId, ref: 'Subject' },
+          rank: Number,
+        },
+      ],
+    }],
+    overall: {
+      totalExamsAttended: Number,
+      totalMarks: Number,
+      overallRank: Number,
+    },
   },
 });
 
 // Professor Schema
 const ProfessorSchema = new Schema({
   _id: ObjectId,
+  id: String,
   username: String,
   password: String,
   personalDetails: {
     name: String,
     email: String,
-    phone: String
+    phone: String,
   },
 });
 
 // ProgramIncharge Schema
 const ProgramInchargeSchema = new Schema({
   _id: ObjectId,
+  id: String,
   username: String,
   password: String,
   personalDetails: {
     name: String,
     email: String,
-    phone: String
+    phone: String,
   },
 });
 
 // Admin Schema
 const AdminSchema = new Schema({
   _id: ObjectId,
+  id: String,
   username: String,
   password: String,
   personalDetails: {
     name: String,
     email: String,
-    phone: String
+    phone: String,
   },
 });
 
@@ -82,7 +87,7 @@ const CourseSchema = new Schema({
   analytics: {
     totalStudents: Number,
     totalExams: Number,
-    averageMarksPercentage: Number,
+    totalMarks: Number,
   },
 });
 
@@ -95,7 +100,7 @@ const SubjectSchema = new Schema({
   analytics: {
     totalStudents: Number,
     totalExams: Number,
-    averageMarksPercentage: Number,
+    totalMarks: Number,
   },
 });
 
