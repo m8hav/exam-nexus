@@ -1,18 +1,54 @@
-students
-  edit user details
+STUDENTS:
+  view student details
+  edit student details (password)
   view courses
-  view exam schedule
+  view exam dates and exam schedule
   attend exams
-  view/appeal results
+  view results
+  appeal results
   view exam analysis
 
-professors
-  edit user details
-  view/add/remove/change course
-  view/add/remove/change exam schedule
-  view/add/remove/change exam results
-  view/approve/reject appeals
+PROFESSORS:
+  view professor details
+  edit professor details (password)
+  
+  view exam schedule
+  view exam dates
+  add exam dates
+  remove exam dates
+  update exam dates
 
-admins
-  view/add/remove students
-  view/add/remove professors
+  view exam results
+  add exam results
+  remove exam results
+  update exam results
+
+  view appeals
+  approve appeals
+  reject appeals
+
+PROGRAM INCHARGES:
+  view program incharge details
+  edit program incharge details (password)
+
+  view courses
+  add courses
+  remove courses
+  update courses
+
+  view exam schedule
+  view exam dates
+  view exam results
+
+ADMINS:
+  view students
+  add students
+  remove students
+
+  view professors
+  add professors
+  remove professors
+
+  view program incharges
+  add program incharges
+  remove program incharges
