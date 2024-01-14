@@ -13,6 +13,7 @@ Basic Features:
   View results here (including past results)
   Appeal results here
   View exam analysis here
+  View subject-wise performance here
 
 Advanced Features:
   Notifications

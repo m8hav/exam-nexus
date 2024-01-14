@@ -1,0 +1,14 @@
+front end
+	- react
+	- responsive
+	- animation
+	- basic effects
+
+api
+	- REST API
+	- session auth
+	- clear endpoints
+
+database functions
+	- CRUD operations
+	- all queries for each function
