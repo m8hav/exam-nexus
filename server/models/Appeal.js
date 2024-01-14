@@ -23,6 +23,12 @@ const AppealSchema = new Schema({
     required: true,
     default: () => Date.now()
   },
+  status: {
+    type: String,
+    required: true,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
 });
 
 export default model('Appeal', AppealSchema, 'appeals');

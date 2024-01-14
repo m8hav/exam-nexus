@@ -2,6 +2,7 @@
 
 // IMPORTS
 
+import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
 // importing models
@@ -16,9 +17,10 @@ import Course from './models/Course.js';
 import MCQQuestion from './models/MCQQuestion.js';
 import CodeQuestion from './models/CodeQuestion.js';
 
+dotenv.config();
 
 // CONNECTING TO DATABASE
-mongoose.connect('mongodb://0.0.0.0:27017/exam_nexus_db');
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://0.0.0.0:27017/exam_nexus_db');
 const connection = mongoose.connection;
 connection.once('open', function () {
   console.log("database connected");
@@ -27,13 +29,12 @@ connection.on('error', () => console.log("Couldn't connect to MongoDB"));
 
 
 
-
 // CREATE FUNCTIONS
 
 // create student
-export const createStudent = async (student) => {
+export const createStudent = async (studentInfo) => {
   try {
-    const newStudent = await Student.create(student);
+    const newStudent = await Student.create(studentInfo);
     return {
       success: true,
       student: newStudent
@@ -47,9 +48,9 @@ export const createStudent = async (student) => {
 }
 
 // create professor
-export const createProfessor = async (professor) => {
+export const createProfessor = async (professorInfo) => {
   try {
-    const newProfessor = await Professor.create(professor);
+    const newProfessor = await Professor.create(professorInfo);
     return {
       success: true,
       professor: newProfessor
@@ -63,9 +64,9 @@ export const createProfessor = async (professor) => {
 }
 
 // create program incharge
-export const createProgramIncharge = async (programIncharge) => {
+export const createProgramIncharge = async (programInchargeInfo) => {
   try {
-    const newProgramIncharge = await ProgramIncharge.create(programIncharge);
+    const newProgramIncharge = await ProgramIncharge.create(programInchargeInfo);
     return {
       success: true,
       programIncharge: newProgramIncharge
@@ -79,9 +80,9 @@ export const createProgramIncharge = async (programIncharge) => {
 }
 
 // create admin
-export const createAdmin = async (admin) => {
+export const createAdmin = async (adminInfo) => {
   try {
-    const newAdmin = await Admin.create(admin);
+    const newAdmin = await Admin.create(adminInfo);
     return {
       success: true,
       admin: newAdmin
@@ -95,23 +96,23 @@ export const createAdmin = async (admin) => {
 }
 
 // create course
-export const createCourse = async (course) => {
+export const createCourse = async (courseInfo) => {
   try {
-    const professor = await Professor.findById(course.professorId);
+    const professor = await Professor.findById(courseInfo.professorId);
     if (!professor) {
       return {
         success: false,
         message: "Professor not found"
       };
     }
-    const students = await Student.find({ _id: { $in: course.studentIds } });
-    if (students.length !== course.studentIds.length) {
+    const students = await Student.find({ _id: { $in: courseInfo.studentIds } });
+    if (students.length !== courseInfo.studentIds.length) {
       return {
         success: false,
         message: "One or more students not found"
       };
     }
-    const newCourse = await Course.create(course);
+    const newCourse = await Course.create(courseInfo);
     professor.courseIds.push(newCourse._id);
     await professor.save();
     for (const student of students) {
@@ -131,9 +132,9 @@ export const createCourse = async (course) => {
 }
 
 // create mcq question
-export const createMCQQuestion = async (mcqQuestion) => {
+export const createMCQQuestion = async (mcqQuestionInfo) => {
   try {
-    const newMCQQuestion = await MCQQuestion.create(mcqQuestion);
+    const newMCQQuestion = await MCQQuestion.create(mcqQuestionInfo);
     return {
       success: true,
       mcqQuestion: newMCQQuestion
@@ -147,9 +148,9 @@ export const createMCQQuestion = async (mcqQuestion) => {
 }
 
 // create code question
-export const createCodeQuestion = async (codeQuestion) => {
+export const createCodeQuestion = async (codeQuestionInfo) => {
   try {
-    const newCodeQuestion = await CodeQuestion.create(codeQuestion);
+    const newCodeQuestion = await CodeQuestion.create(codeQuestionInfo);
     return {
       success: true,
       codeQuestion: newCodeQuestion
@@ -163,16 +164,16 @@ export const createCodeQuestion = async (codeQuestion) => {
 }
 
 // create exam
-export const createExam = async (exam) => {
+export const createExam = async (examInfo) => {
   try {
-    const course = await Course.findById(exam.courseId);
+    const course = await Course.findById(examInfo.courseId);
     if (!course) {
       return {
         success: false,
         message: "Course not found"
       };
     }
-    const newExam = await Exam.create(exam);
+    const newExam = await Exam.create(examInfo);
     course.examIds.push(newExam._id);
     await course.save();
     return {
@@ -212,16 +213,16 @@ const calculateResultMarks = async (exam, result) => {
 }
 
 // create result
-export const createResult = async (result) => {
+export const createResult = async (resultInfo) => {
   try {
-    const exam = await Exam.findById(result.examId);
+    const exam = await Exam.findById(resultInfo.examId);
     if (!exam) {
       return {
         success: false,
         message: "Exam not found"
       };
     }
-    const student = await Student.findById(result.studentId);
+    const student = await Student.findById(resultInfo.studentId);
     if (!student) {
       return {
         success: false,
@@ -229,11 +230,11 @@ export const createResult = async (result) => {
       };
     }
     let marks = 0;
-    marks += await calculateResultMarks(exam, result);
-    result.marks = marks;
-    result.updatedAt = new Date();
-    result.rank = 0;
-    const newResult = await Result.findOneAndUpdate({ examId: result.examId, studentId: result.studentId }, result, { upsert: true, new: true });
+    marks += await calculateResultMarks(exam, resultInfo);
+    resultInfo.marks = marks;
+    resultInfo.updatedAt = new Date();
+    resultInfo.rank = 0;
+    const newResult = await Result.findOneAndUpdate({ examId: resultInfo.examId, studentId: resultInfo.studentId }, resultInfo, { upsert: true, new: true });
     if (!exam.resultIds.includes(newResult._id))
       exam.resultIds.push(newResult._id);
     exam.resultAnalytics.totalAttendees += 1;
@@ -249,7 +250,7 @@ export const createResult = async (result) => {
       result: await Result.findById(newResult._id)
     };
   } catch (error) {
-    await Result.deleteOne({ examId: result.examId, studentId: result.studentId });
+    await Result.deleteOne({ examId: resultInfo.examId, studentId: resultInfo.studentId });
     return {
       success: false,
       message: error.message
@@ -258,14 +259,33 @@ export const createResult = async (result) => {
 }
 
 // create appeal
-export const createAppeal = async (appeal) => {
+export const createAppeal = async (appealInfo) => {
   try {
-    const newAppeal = await Appeal.create(appeal);
+    const result = await Result.findById(appealInfo.resultId);
+    if (!result) {
+      return {
+        success: false,
+        message: "Result not found"
+      };
+    }
+    const exam = await Exam.findById(result.examId);
+    if (!exam) {
+      return {
+        success: false,
+        message: "Exam not found"
+      };
+    }
+    const newAppeal = await Appeal.create(appealInfo);
+    result.appealId = newAppeal._id;
+    await result.save();
+    exam.appealIds.push(newAppeal._id);
+    await exam.save();
     return {
       success: true,
       appeal: newAppeal
     };
   } catch (error) {
+    await Appeal.deleteOne({ resultId: appealInfo.resultId });
     return {
       success: false,
       message: error.message
@@ -279,6 +299,7 @@ export const createAppeal = async (appeal) => {
 
 // get student / read student
 export const getStudent = async (studentInfo) => {
+  // console.log(studentInfo)
   const student = await Student.findOne(studentInfo);
   if (student) {
     return {
@@ -591,6 +612,8 @@ export const updateMCQQuestion = async (mcqQuestionInfo, update) => {
     try {
       const updateResult = await mcqQuestion.updateOne(update);
       if (updateResult.acknowledged) {
+        const exam = await Exam.findOne({ mcqQuestionIds: mcqQuestion._id });
+        recalculateExamResults(exam._id);
         return {
           success: true,
           mcqQuestion: await MCQQuestion.findById(mcqQuestion._id)
@@ -618,6 +641,8 @@ export const updateCodeQuestion = async (codeQuestionInfo, update) => {
     try {
       const updateResult = await codeQuestion.updateOne(update);
       if (updateResult.acknowledged) {
+        const exam = await Exam.findOne({ mcqQuestionIds: mcqQuestion._id });
+        recalculateExamResults(exam._id);
         return {
           success: true,
           codeQuestion: await CodeQuestion.findById(codeQuestion._id)
@@ -664,6 +689,39 @@ export const updateExam = async (examInfo, update) => {
   }
 }
 
+// recalculate all results of an exam
+export const recalculateExamResults = async (examId) => {
+  try {
+    const exam = await Exam.findById(examId);
+    if (!exam) {
+      return {
+        success: false,
+        message: "Exam not found"
+      };
+    }
+    await exam.populate('resultIds');
+    const results = exam.resultIds;
+    for (const result of results) {
+      let marks = 0;
+      marks += await calculateResultMarks(exam, result);
+      result.marks = marks;
+      result.updatedAt = new Date();
+      await result.save();
+    };
+    await calculateRanks(exam);
+    console.log("Recalculated results of exam: " + examId);
+    return {
+      success: true,
+      exam: await Exam.findById(exam._id)
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message
+    };
+  }
+}
+
 // update exam's result
 export const updateExamResults = async (examInfo, update) => {
   const exam = await Exam.findOne(examInfo);
@@ -687,33 +745,6 @@ export const updateExamResults = async (examInfo, update) => {
     return {
       success: false,
       message: "Exam not found"
-    };
-  }
-}
-
-// update result
-export const updateResult = async (resultInfo, update) => {
-  const result = await Result.findOne(resultInfo);
-  if (result) {
-    try {
-      const updateResult = await result.updateOne(update);
-      if (updateResult.acknowledged) {
-        return {
-          success: true,
-          result: await Result.findById(result._id)
-        };
-      }
-      throw new Error("Couldn't update result for unknown reason");
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message
-      };
-    }
-  } else {
-    return {
-      success: false,
-      message: "Result not found"
     };
   }
 }
@@ -746,7 +777,191 @@ export const updateAppeal = async (appealInfo, update) => {
 
 
 
+// DELETE FUNCTIONS
 
+// delete student
+export const deleteStudent = async (studentInfo) => {
+  try {
+    await Student.deleteOne(studentInfo);
+    return {
+      success: true,
+      message: "Student deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete professor
+export const deleteProfessor = async (professorInfo) => {
+  try {
+    await Professor.deleteOne(professorInfo);
+    return {
+      success: true,
+      message: "Professor deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete program incharge
+export const deleteProgramIncharge = async (programInchargeInfo) => {
+  try {
+    await ProgramIncharge.deleteOne(programInchargeInfo);
+    return {
+      success: true,
+      message: "Program Incharge deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete admin
+export const deleteAdmin = async (adminInfo) => {
+  try {
+    await Admin.deleteOne(adminInfo);
+    return {
+      success: true,
+      message: "Admin deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete course
+export const deleteCourse = async (courseInfo) => {
+  try {
+    await Course.deleteOne(courseInfo);
+    return {
+      success: true,
+      message: "Course deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete mcq question
+export const deleteMCQQuestion = async (mcqQuestionInfo) => {
+  try {
+    await MCQQuestion.deleteOne(mcqQuestionInfo);
+    return {
+      success: true,
+      message: "MCQ Question deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete code question
+export const deleteCodeQuestion = async (codeQuestionInfo) => {
+  try {
+    await CodeQuestion.deleteOne(codeQuestionInfo);
+    return {
+      success: true,
+      message: "Code Question deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete exam
+export const deleteExam = async (examInfo) => {
+  try {
+    await Exam.deleteOne(examInfo);
+    return {
+      success: true,
+      message: "Exam deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete result
+export const deleteResult = async (resultInfo) => {
+  try {
+    await Result.deleteOne(resultInfo);
+    return {
+      success: true,
+      message: "Result deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+// delete appeal
+export const deleteAppeal = async (appealInfo) => {
+  try {
+    await Appeal.deleteOne(appealInfo);
+    return {
+      success: true,
+      message: "Appeal deleted"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: err.message
+    };
+  }
+}
+
+
+
+
+
+// console.log(await createStudent({
+//   name: "Anshika",
+//   email: "anshika@gmail.com",
+//   username: "2111981045",
+//   password: "123456",
+//   batch: 2021,
+//   semester: 1,
+//   enrolledCourseIds: [],
+//   pastEnrolledCourses: [],
+//   performance: {
+//     semesterPerformance: [],
+//     overallPerformance: {
+//       totalExamsAttended: 0,
+//       totalMaxMarks: 0,
+//       totalMarksScored: 0,
+//     }
+//   }
+// }));
+// console.log(await deleteStudent({username: "2111981045"}));
 
 
 // TESTING RESULT ADDITION
@@ -1027,4 +1242,24 @@ export const updateAppeal = async (appealInfo, update) => {
 // const results = await Exam.findOne().populate('resultIds').select('resultIds');
 // results.resultIds.forEach(result => {
 //   console.log(result.rank, result.studentId);
+// })
+
+// updating an mcq question
+// const mcqQuestionUpdateResult = await updateMCQQuestion({
+//   questionText: "What is the time complexity of bubble sort?",
+// }, {
+//   options: [{
+//     text: "O(n)",
+//     isCorrect: false
+//   }, {
+//     text: "O(nlogn)",
+//     isCorrect: false
+//   }, {
+//     text: "O(n^2)",
+//     isCorrect: true
+//   }, {
+//     text: "O(n^3)",
+//     isCorrect: false
+//   }],
+//   marks: 1
 // })

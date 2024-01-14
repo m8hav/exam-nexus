@@ -45,6 +45,10 @@ const ResultSchema = new Schema({
     type: Number,
     required: true
   },
+  appealId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Appeal'
+  }
 });
 
 export default model('Result', ResultSchema, 'results');

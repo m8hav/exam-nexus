@@ -68,6 +68,10 @@ const ExamSchema = new Schema({
     required: true,
     default: () => Date.now()
   },
+  appealIds: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Appeal'
+  }],
 });
 
 export default model("Exam", ExamSchema, "exams");
