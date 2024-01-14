@@ -1,0 +1,6 @@
+password for all users: 123456
+
+admin1 jwt access token:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluMiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTcwNTI1ODY0MX0.ipqDR3AVOzU01VnSH2aOiQoUNY3A0VSgWg7MospUTbA"
+}

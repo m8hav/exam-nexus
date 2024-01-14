@@ -551,6 +551,24 @@ app.get('/api/exam/:oid', authenticateToken, async (req, res) => {
   }
 });
 
+// get all exams of a course
+app.get('/api/exams/:courseCode', authenticateToken, async (req, res) => {
+  try {
+    const course = await getCourse({ courseCode: req.params.courseCode });
+    if (!course.success) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    course.course.examIds = await Promise.all(course.course.examIds.map(async (examId) => {
+      const exam = await getExam({ _id: examId });
+      return exam.success ? exam.exam : null;
+    }));
+    const exams = course.course.examIds;
+    res.status(200).json(exams);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // get result by object id
 app.get('/api/result/:oid', authenticateToken, async (req, res) => {
   try {
@@ -604,7 +622,8 @@ app.get('/api/appeals/:examId', authenticateToken, async (req, res) => {
     if (!exam.success) {
       return res.status(404).json({ message: "Exam not found" });
     }
-    exam.exam.populate('appealIds');
+    // POPULATE TODOS
+    // exam.exam.populate('appealIds');
     const appeals = exam.exam.appealIds;
     res.status(200).json(appeals);
   } catch (err) {

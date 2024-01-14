@@ -7,7 +7,8 @@ import StudentDash from './components/StudentDash';
 import UpcomingExams from './components/UpcomingExams';
 import AttendExam from './components/AttendExam';
 import PastExams from './components/PastExams';
-
+import ExamResult from './components/ExamResult'; 
+import Exam from './components/Exam';
 
 const App = () => {
   return (
@@ -19,6 +20,8 @@ const App = () => {
         <Route path="/upcoming-exams" element={<UpcomingExams />} />
         <Route path="/attend-exam" element={<AttendExam />} />
         <Route path="/past-exams" element={<PastExams />} />
+        <Route path="/exam-result" element={<ExamResult />} />
+        <Route path="/take-exam" element={<Exam />} />
       </Routes>
     </Router>
   );
