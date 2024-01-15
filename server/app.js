@@ -48,6 +48,12 @@ import {
   deleteExam,
   deleteResult,
   deleteAppeal,
+  getStudents,
+  getAllStudents,
+  getAllProgramIncharges,
+  getAllProfessors,
+  getAllAdmins,
+  getAllCourses,
 } from './database.js';
 
 dotenv.config();
@@ -95,10 +101,8 @@ function authenticateToken(req, res, next) {
 
 // login student and get JWT
 app.post('/api/student/login', async (req, res) => {
-  console.log("logging in")
   const result = await getStudent({ username: req.body.username });
   if (result.success) {
-    console.log(result)
     const hashed_password = result.data.password;
     const passwordMatch = await bcrypt.compare(req.body.password, hashed_password);
     if (passwordMatch) {
@@ -190,6 +194,9 @@ app.post('/api/student', authenticateToken, async (req, res) => {
   if (req.user.type !== "admin") {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
+  if (!req.body.password) {
+    req.body.password = "123456";
+  }
   try {
     const studentInfo = {
       enrolledCourseIds: [],
@@ -218,7 +225,7 @@ app.post('/api/student', authenticateToken, async (req, res) => {
 
 // get student by username
 app.get('/api/student/:username', authenticateToken, async (req, res) => {
-  if (!(req.user.type in ["admin", "program-incharge"]) && req.user.username != req.params.username) {
+  if (!(["admin", "program-incharge", "professor"].includes(req.user.type)) && req.user.username != req.params.username) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -233,9 +240,22 @@ app.get('/api/student/:username', authenticateToken, async (req, res) => {
   }
 });
 
-// update student by username
-app.put('/api/student/:username', authenticateToken, async (req, res) => {
-  if (!(req.user.type in ["admin", "program-incharge", "professor"]) && req.user.username != req.params.username) {
+// get all students
+app.get('/api/students', authenticateToken, async (req, res) => {
+  if (!(["admin", "program-incharge", "professor"].includes(req.user.type))) {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  try {
+    const students = await getAllStudents();
+    res.status(200).json(students);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// update student by student id
+app.put('/api/student/:studentId', authenticateToken, async (req, res) => {
+  if (!(["admin", "program-incharge"].includes(req.user.type)) && req.user._id != req.params.studentId) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -244,7 +264,7 @@ app.put('/api/student/:username', authenticateToken, async (req, res) => {
       // update password if provided
       ...(req.body.password && { password: await bcrypt.hash(req.body.password, 10) })
     }
-    const result = await updateStudent({ username: req.params.username }, studentInfo);
+    const result = await updateStudent({ _id: req.params.studentId }, studentInfo);
     if (result.success) {
       res.status(200).json(result);
     } else {
@@ -255,19 +275,20 @@ app.put('/api/student/:username', authenticateToken, async (req, res) => {
   }
 });
 
-// delete student by username
-app.delete('/api/student/:username', authenticateToken, async (req, res) => {
+// delete student by student id
+app.delete('/api/student/:studentId', authenticateToken, async (req, res) => {
   if (req.user.type !== "admin") {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
-    const result = await deleteStudent({ username: req.params.username });
+    const result = await deleteStudent({ _id: req.params.studentId });
     if (result.success) {
       res.status(200).json(result);
     } else {
       res.status(404).json(result);
     }
   } catch (err) {
+
     res.status(400).json({ success: false, message: err.message });
   }
 });
@@ -278,6 +299,9 @@ app.delete('/api/student/:username', authenticateToken, async (req, res) => {
 app.post('/api/professor', authenticateToken, async (req, res) => {
   if (req.user.type !== "admin") {
     return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  if (!req.body.password) {
+    req.body.password = "123456";
   }
   try {
     const professorInfo = {
@@ -297,7 +321,7 @@ app.post('/api/professor', authenticateToken, async (req, res) => {
 
 // get professor by username
 app.get('/api/professor/:username', authenticateToken, async (req, res) => {
-  if (!(req.user.type in ["admin", "program-incharge", "professor"])) {
+  if (!(["admin", "program-incharge", "professor"].includes(req.user.type))) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -312,9 +336,22 @@ app.get('/api/professor/:username', authenticateToken, async (req, res) => {
   }
 });
 
-// update professor by username
-app.put('/api/professor/:username', authenticateToken, async (req, res) => {
-  if (!(req.user.type in ["admin", "program-incharge"]) && req.user.username != req.params.username) {
+// get all professors
+app.get('/api/professors', authenticateToken, async (req, res) => {
+  if (!(["admin", "program-incharge", "professor"].includes(req.user.type))) {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  try {
+    const professors = await getAllProfessors();
+    res.status(200).json(professors);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// update professor by professor id
+app.put('/api/professor/:professorId', authenticateToken, async (req, res) => {
+  if (!(["admin", "program-incharge"].includes(req.user.type)) && req.user._id != req.params.professorId) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -323,12 +360,13 @@ app.put('/api/professor/:username', authenticateToken, async (req, res) => {
       // update password if provided
       ...(req.body.password && { password: await bcrypt.hash(req.body.password, 10) })
     }
-    const result = await updateProfessor({ username: req.params.username }, professorInfo);
+    const result = await updateProfessor({ _id: req.params.professorId }, professorInfo);
     if (result.success) {
       res.status(200).json(result);
     } else {
       res.status(404).json(result);
     }
+
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -358,6 +396,9 @@ app.post('/api/program-incharge', authenticateToken, async (req, res) => {
   if (req.user.type !== "admin") {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
+  if (!req.body.password) {
+    req.body.password = "123456";
+  }
   try {
     const programInchargeInfo = {
       ...req.body,
@@ -376,7 +417,7 @@ app.post('/api/program-incharge', authenticateToken, async (req, res) => {
 
 // get program incharge by username
 app.get('/api/program-incharge/:username', authenticateToken, async (req, res) => {
-  if (!(req.user.type in ["admin", "program-incharge"])) {
+  if (!(["admin", "program-incharge"].includes(req.user.type))) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -391,9 +432,22 @@ app.get('/api/program-incharge/:username', authenticateToken, async (req, res) =
   }
 });
 
-// update program incharge by username
-app.put('/api/program-incharge/:username', authenticateToken, async (req, res) => {
-  if (req.user.type !== "admin" && req.user.username != req.params.username) {
+// get all program incharges
+app.get('/api/program-incharges', authenticateToken, async (req, res) => {
+  if (!(["admin", "program-incharge"].includes(req.user.type))) {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  try {
+    const programIncharges = await getAllProgramIncharges();
+    res.status(200).json(programIncharges);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// update program incharge by program incharge id
+app.put('/api/program-incharge/:programInchargeId', authenticateToken, async (req, res) => {
+  if (req.user.type !== "admin") {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -402,7 +456,7 @@ app.put('/api/program-incharge/:username', authenticateToken, async (req, res) =
       // update password if provided
       ...(req.body.password && { password: await bcrypt.hash(req.body.password, 10) })
     }
-    const result = await updateProgramIncharge({ username: req.params.username }, programInchargeInfo);
+    const result = await updateProgramIncharge({ _id: req.params.programInchargeId }, programInchargeInfo);
     if (result.success) {
       res.status(200).json(result);
     } else {
@@ -434,6 +488,9 @@ app.delete('/api/program-incharge/:username', authenticateToken, async (req, res
 
 // create admin
 app.post('/api/admin', async (req, res) => {
+  if (!req.body.password) {
+    req.body.password = "123456";
+  }
   try {
     const adminInfo = {
       ...req.body,
@@ -467,9 +524,22 @@ app.get('/api/admin/:username', authenticateToken, async (req, res) => {
   }
 });
 
-// update admin by username
-app.put('/api/admin/:username', authenticateToken, async (req, res) => {
-  if (req.user.username != req.params.username) {
+// get all admins
+app.get('/api/admins', authenticateToken, async (req, res) => {
+  if (req.user.type !== "admin") {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+  try {
+    const admins = await getAllAdmins();
+    res.status(200).json(admins);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+})
+
+// update admin by admin id
+app.put('/api/admin/:adminId', authenticateToken, async (req, res) => {
+  if (req.user.type !== "admin" && req.user._id != req.params.adminId) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -478,12 +548,13 @@ app.put('/api/admin/:username', authenticateToken, async (req, res) => {
       // update password if provided
       ...(req.body.password && { password: await bcrypt.hash(req.body.password, 10) })
     }
-    const result = await updateAdmin({ username: req.params.username }, adminInfo);
+    const result = await updateAdmin({ _id: req.params.adminId }, adminInfo);
     if (result.success) {
       res.status(200).json(result);
     } else {
       res.status(404).json(result);
     }
+
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -535,6 +606,16 @@ app.get('/api/course/:courseCode', authenticateToken, async (req, res) => {
     } else {
       res.status(404).json(result);
     }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// get all courses
+app.get('/api/courses', authenticateToken, async (req, res) => {
+  try {
+    const courses = await getAllCourses();
+    res.status(200).json(courses);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

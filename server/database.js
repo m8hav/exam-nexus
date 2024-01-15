@@ -314,6 +314,22 @@ export const getStudent = async (studentInfo) => {
   }
 }
 
+// get all students / read all students
+export const getAllStudents = async () => {
+  const students = await Student.find({});
+  if (students && students.length > 0) {
+    return {
+      success: true,
+      data: students
+    };
+  } else {
+    return {
+      success: false,
+      message: "Students not found"
+    };
+  }
+}
+
 // get multiple students / read multiple students
 export const getStudents = async (studentsInfo) => {
   const students = await Student.find(studentsInfo);
@@ -346,6 +362,22 @@ export const getProfessor = async (professorInfo) => {
   }
 }
 
+// get all professors / read all professors
+export const getAllProfessors = async () => {
+  const professors = await Professor.find({});
+  if (professors && professors.length > 0) {
+    return {
+      success: true,
+      data: professors
+    };
+  } else {
+    return {
+      success: false,
+      message: "Professors not found"
+    };
+  }
+}
+
 // get program incharge / read program incharge
 export const getProgramIncharge = async (programInchargeInfo) => {
   const programIncharge = await ProgramIncharge.findOne(programInchargeInfo);
@@ -358,6 +390,22 @@ export const getProgramIncharge = async (programInchargeInfo) => {
     return {
       success: false,
       message: "Program Incharge not found"
+    };
+  }
+}
+
+// get all program incharges / read all program incharges
+export const getAllProgramIncharges = async () => {
+  const programIncharges = await ProgramIncharge.find({});
+  if (programIncharges && programIncharges.length > 0) {
+    return {
+      success: true,
+      data: programIncharges
+    };
+  } else {
+    return {
+      success: false,
+      message: "Program Incharges not found"
     };
   }
 }
@@ -378,10 +426,30 @@ export const getAdmin = async (adminInfo) => {
   }
 }
 
+// get all admins / read all admins
+export const getAllAdmins = async () => {
+  const admins = await Admin.find({});
+  if (admins && admins.length > 0) {
+    return {
+      success: true,
+      data: admins
+    };
+  } else {
+    return {
+      success: false,
+      message: "Admins not found"
+    };
+  }
+}
+
 // get course / read course
 export const getCourse = async (courseInfo) => {
   const course = await Course.findOne(courseInfo);
   if (course) {
+    await course.populate('professorId');
+    await course.populate('studentIds');
+    await course.populate('examIds');
+    console.log(course)
     return {
       success: true,
       data: course
@@ -390,6 +458,22 @@ export const getCourse = async (courseInfo) => {
     return {
       success: false,
       message: "Course not found"
+    };
+  }
+}
+
+// get all courses / read all courses
+export const getAllCourses = async () => {
+  const courses = await Course.find({});
+  if (courses && courses.length > 0) {
+    return {
+      success: true,
+      data: courses
+    };
+  } else {
+    return {
+      success: false,
+      message: "Courses not found"
     };
   }
 }

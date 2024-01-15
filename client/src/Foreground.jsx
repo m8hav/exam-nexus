@@ -10,12 +10,15 @@ import ManageProfessors from './pages/admin/ManageProfessors'
 import ManageProgramIncharges from './pages/admin/ManageProgramIncharges'
 import ManageAdmins from './pages/admin/ManageAdmins'
 import "./pages/admin/ManageUsers.scss"
+import "./pages/program-incharge/ManageCourses.scss"
+import "./pages/program-incharge/AddCourse.scss"
+import ManageCourses from './pages/program-incharge/ManageCourses'
+import AddCourse from './pages/program-incharge/AddCourse'
+
 function Foreground() {
   const {currentUser} = useContext(AuthContext);
-  
   return (
     <>
-      {/* <div className=' h-full w-full'> */}
       <Navbar />
       <main className='flex flex-column justify-center items-center gap-4 w-full m-auto absolute z-10'>
         <Routes>
@@ -26,9 +29,8 @@ function Foreground() {
             <Route path='manageProfessors/*' element={<ManageProfessors />} />
             <Route path='manageProgramIncharges/*' element={<ManageProgramIncharges />} />
             <Route path='manageAdmins/*' element={<ManageAdmins />} />
-            <Route path='dashboard/*' element={<Dashboard />} />
-            <Route path='dashboard/*' element={<Dashboard />} />
-            <Route path='dashboard/*' element={<Dashboard />} />
+            <Route path='manageCourses/*' element={<ManageCourses />} />
+            <Route path='addCourse/*' element={<AddCourse />} />
             <Route path='logout' element={<Logout />}></Route>
           </Route>
         </Routes>

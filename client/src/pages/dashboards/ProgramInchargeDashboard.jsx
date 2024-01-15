@@ -1,20 +1,16 @@
 import React, { useContext } from 'react'
 import { AuthContext } from '../../contexts/AuthContext';
 import Calendar from '../../components/Calendar';
+import { useNavigate } from 'react-router-dom';
 
 function ProgramInchargeDashboard() {
   const { currentUser } = useContext(AuthContext);
 
-  const handleViewCourses = () => {
+  const navigate = useNavigate();
+  
+  const handleManageCourses = () => {
     console.log('View Courses')
-  }
-
-  const handleViewUpcomingExams = () => {
-    console.log('View Upcoming Exams')
-  }
-
-  const handleViewPastExamsResults = () => {
-    console.log('View Past Exams Results')
+    navigate('/manageCourses')
   }
 
   return (
@@ -41,9 +37,7 @@ function ProgramInchargeDashboard() {
       <div className="quick-actions">
         <p className='title'>Quick Actions</p>
         <div className="buttons">
-          <button className='quick-action-btn' onClick={handleViewCourses}>View Courses</button>
-          <button className='quick-action-btn' onClick={handleViewUpcomingExams}>View Upcoming Exams</button>
-          <button className='quick-action-btn' onClick={handleViewPastExamsResults}>View Past Exams Results</button>
+          <button className='quick-action-btn' onClick={handleManageCourses}>Manage Courses</button>
         </div>
       </div>
       <Calendar />
