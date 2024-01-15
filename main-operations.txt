@@ -1,3 +1,39 @@
+MOST BASIC REQUIREMENTS:
+  STUDENTS:
+    see student dashboard
+    see exam schedule
+    see exam
+    attend exam
+    appeal exam
+
+  PROFESSORS:
+    see professor dashboard
+    see exam schedule
+    see exam
+    add exam
+    remove exam
+    update exam
+    see exam results
+    add exam results
+    remove exam results
+    update exam results
+    see appeals
+    approve appeals
+    reject appeals
+
+  PROGRAM INCHARGE:
+    view courses
+    add student to courses
+    add professor to course
+    add exam
+    see exam schedule
+
+  ADMINS:
+    add/view/remove student
+    add/view/remove professor
+    add/view/remove program incharge
+
+
 STUDENTS:
   view student details
   edit student details (password)

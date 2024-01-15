@@ -235,10 +235,11 @@ export const createResult = async (resultInfo) => {
     resultInfo.updatedAt = new Date();
     resultInfo.rank = 0;
     const newResult = await Result.findOneAndUpdate({ examId: resultInfo.examId, studentId: resultInfo.studentId }, resultInfo, { upsert: true, new: true });
-    if (!exam.resultIds.includes(newResult._id))
+    if (!exam.resultIds.includes(newResult._id)) {
       exam.resultIds.push(newResult._id);
-    exam.resultAnalytics.totalAttendees += 1;
-    exam.resultAnalytics.totalMarksScored += newResult.marks;
+      exam.resultAnalytics.totalAttendees = exam.resultIds.length;
+      exam.resultAnalytics.totalMarksScored += newResult.marks;
+    }
     if (newResult.marks > exam.resultAnalytics.highestMarksInfo.marks) {
       exam.resultAnalytics.highestMarksInfo.marks = newResult.marks;
       exam.resultAnalytics.highestMarksInfo.studentId = newResult.studentId;
@@ -299,7 +300,6 @@ export const createAppeal = async (appealInfo) => {
 
 // get student / read student
 export const getStudent = async (studentInfo) => {
-  // console.log(studentInfo)
   const student = await Student.findOne(studentInfo);
   if (student) {
     return {
@@ -430,6 +430,10 @@ export const getCodeQuestion = async (codeQuestionInfo) => {
 export const getExam = async (examInfo) => {
   const exam = await Exam.findOne(examInfo);
   if (exam) {
+    await exam.populate('courseId');
+    await exam.populate('mcqQuestionIds');
+    await exam.populate('codeQuestionIds')
+    await exam.populate('resultIds');
     return {
       success: true,
       exam: exam
@@ -483,8 +487,8 @@ export const updateStudent = async (studentInfo, update) => {
   const student = await Student.findOne(studentInfo);
   if (student) {
     try {
-      const updateResult = await student.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await student.updateOne(update);
+      if (updateResponse.acknowledged) {
         return {
           success: true,
           student: await Student.findById(student._id)
@@ -510,8 +514,8 @@ export const updateProfessor = async (professorInfo, update) => {
   const professor = await Professor.findOne(professorInfo);
   if (professor) {
     try {
-      const updateResult = await professor.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await professor.updateOne(update);
+      if (updateResponse.acknowledged) {
         return {
           success: true,
           professor: await Professor.findById(professor._id)
@@ -537,8 +541,8 @@ export const updateProgramIncharge = async (programInchargeInfo, update) => {
   const programIncharge = await ProgramIncharge.findOne(programInchargeInfo);
   if (programIncharge) {
     try {
-      const updateResult = await programIncharge.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await programIncharge.updateOne(update);
+      if (updateResponse.acknowledged) {
         return {
           success: true,
           programIncharge: await ProgramIncharge.findById(programIncharge._id)
@@ -556,8 +560,8 @@ export const updateAdmin = async (adminInfo, update) => {
   const admin = await Admin.findOne(adminInfo);
   if (admin) {
     try {
-      const updateResult = await admin.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await admin.updateOne(update);
+      if (updateResponse.acknowledged) {
         return {
           success: true,
           admin: await Admin.findById(admin._id)
@@ -583,8 +587,8 @@ export const updateCourse = async (courseInfo, update) => {
   const course = await Course.findOne(courseInfo);
   if (course) {
     try {
-      const updateResult = await course.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await course.updateOne(update);
+      if (updateResponse.acknowledged) {
         return {
           success: true,
           course: await Course.findById(course._id)
@@ -610,8 +614,8 @@ export const updateMCQQuestion = async (mcqQuestionInfo, update) => {
   const mcqQuestion = await MCQQuestion.findOne(mcqQuestionInfo);
   if (mcqQuestion) {
     try {
-      const updateResult = await mcqQuestion.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await mcqQuestion.updateOne(update);
+      if (updateResponse.acknowledged) {
         const exam = await Exam.findOne({ mcqQuestionIds: mcqQuestion._id });
         recalculateExamResults(exam._id);
         return {
@@ -639,8 +643,8 @@ export const updateCodeQuestion = async (codeQuestionInfo, update) => {
   const codeQuestion = await CodeQuestion.findOne(codeQuestionInfo);
   if (codeQuestion) {
     try {
-      const updateResult = await codeQuestion.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await codeQuestion.updateOne(update);
+      if (updateResponse.acknowledged) {
         const exam = await Exam.findOne({ mcqQuestionIds: mcqQuestion._id });
         recalculateExamResults(exam._id);
         return {
@@ -667,8 +671,8 @@ export const updateExam = async (examInfo, update) => {
   const exam = await Exam.findOne(examInfo);
   if (exam) {
     try {
-      const updateResult = await exam.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await exam.updateOne(update);
+      if (updateResponse.acknowledged) {
         return {
           success: true,
           exam: await Exam.findById(exam._id)
@@ -699,15 +703,25 @@ export const recalculateExamResults = async (examId) => {
         message: "Exam not found"
       };
     }
-    await exam.populate('resultIds');
-    const results = exam.resultIds;
+    const examCopy = exam;
+    await examCopy.populate('resultIds');
+    const results = examCopy.resultIds;
+    exam.resultAnalytics.totalMarksScored = 0;
+    exam.resultAnalytics.highestMarksInfo.marks = 0;
+    exam.resultAnalytics.highestMarksInfo.studentId = null;
     for (const result of results) {
       let marks = 0;
       marks += await calculateResultMarks(exam, result);
       result.marks = marks;
       result.updatedAt = new Date();
       await result.save();
+      exam.resultAnalytics.totalMarksScored += marks;
+      if (marks > exam.resultAnalytics.highestMarksInfo.marks) {
+        exam.resultAnalytics.highestMarksInfo.marks = marks;
+        exam.resultAnalytics.highestMarksInfo.studentId = result.studentId;
+      }
     };
+    await exam.save();
     await calculateRanks(exam);
     console.log("Recalculated results of exam: " + examId);
     return {
@@ -722,31 +736,32 @@ export const recalculateExamResults = async (examId) => {
   }
 }
 
-// update exam's result
-export const updateExamResults = async (examInfo, update) => {
-  const exam = await Exam.findOne(examInfo);
-  if (exam) {
+// update result
+export const updateResult = async (resultInfo, update) => {
+  const result = await Result.findOne(resultInfo);
+  if (result) {
     try {
-      const updateResult = await exam.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await result.updateOne(update);
+      if (updateResponse.acknowledged) {
+        const exam = await Exam.findOne({ resultIds: result._id });
+        recalculateExamResults(exam._id);
         return {
           success: true,
-          exam: await Exam.findById(exam._id)
+          result: await Result.findById(result._id)
         };
       }
-      throw new Error("Couldn't update exam for unknown reason");
+      throw new Error("Couldn't update result for unknown reason");
     } catch (error) {
       return {
         success: false,
         message: error.message
       };
     }
-  } else {
-    return {
-      success: false,
-      message: "Exam not found"
-    };
   }
+  return {
+    success: false,
+    message: "Result not found"
+  };
 }
 
 // update appeal
@@ -754,8 +769,8 @@ export const updateAppeal = async (appealInfo, update) => {
   const appeal = await Appeal.findOne(appealInfo);
   if (appeal) {
     try {
-      const updateResult = await appeal.updateOne(update);
-      if (updateResult.acknowledged) {
+      const updateResponse = await appeal.updateOne(update);
+      if (updateResponse.acknowledged) {
         return {
           success: true,
           appeal: await Appeal.findById(appeal._id)

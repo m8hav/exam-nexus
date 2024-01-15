@@ -12,7 +12,10 @@ const CourseSchema = new Schema({
     unique: true,
     index: true
   },
-  syllabus: [String],
+  syllabus: {
+    type: [String],
+    required: true
+  },
   professorId: {
     type: Schema.Types.ObjectId,
     ref: 'Professor',

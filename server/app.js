@@ -1,10 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { ObjectId } from 'mongodb';
 
 import {
   createStudent,
@@ -37,7 +35,7 @@ import {
   updateMCQQuestion,
   updateCodeQuestion,
   updateExam,
-  updateExamResults,
+  updateResult,
   updateAppeal,
 
   deleteStudent,
@@ -51,7 +49,6 @@ import {
   deleteResult,
   deleteAppeal,
 } from './database.js';
-import Student from './models/Student.js';
 
 dotenv.config();
 
@@ -104,7 +101,11 @@ app.post('/api/students/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(req.body.password, hashed_password);
     if (passwordMatch) {
       // Generate a JWT
-      const token = jwt.sign({ username: req.body.username, type: "student" }, process.env.ACCESS_TOKEN_SECRET);
+      const token = jwt.sign({
+        username: req.body.username,
+        _id: result.student._id,
+        type: "student"
+      }, process.env.ACCESS_TOKEN_SECRET);
       res.status(200).json({ token });
     } else {
       res.status(400).send({ message: "Incorrect password" });
@@ -122,7 +123,11 @@ app.post('/api/professors/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(req.body.password, hashed_password);
     if (passwordMatch) {
       // Generate a JWT
-      const token = jwt.sign({ username: req.body.username, type: "professor" }, process.env.ACCESS_TOKEN_SECRET);
+      const token = jwt.sign({
+        username: req.body.username,
+        _id: result.professor._id,
+        type: "professor"
+      }, process.env.ACCESS_TOKEN_SECRET);
       res.status(200).json({ token });
     } else {
       res.status(400).send({ message: "Incorrect password" });
@@ -140,7 +145,11 @@ app.post('/api/program-incharges/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(req.body.password, hashed_password);
     if (passwordMatch) {
       // Generate a JWT
-      const token = jwt.sign({ username: req.body.username, type: "program-incharge" }, process.env.ACCESS_TOKEN_SECRET);
+      const token = jwt.sign({
+        username: req.body.username,
+        _id: result.programIncharge._id,
+        type: "program-incharge"
+      }, process.env.ACCESS_TOKEN_SECRET);
       res.status(200).json({ token });
     } else {
       res.status(400).send({ message: "Incorrect password" });
@@ -158,7 +167,11 @@ app.post('/api/admins/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(req.body.password, hashed_password);
     if (passwordMatch) {
       // Generate a JWT
-      const token = jwt.sign({ username: req.body.username, type: "admin" }, process.env.ACCESS_TOKEN_SECRET);
+      const token = jwt.sign({
+        username: req.body.username,
+        _id: result.admin._id,
+        type: "admin"
+      }, process.env.ACCESS_TOKEN_SECRET);
       res.status(200).json({ token });
     } else {
       res.status(400).send({ message: "Incorrect password" });
@@ -208,7 +221,6 @@ app.get('/api/student/:username', authenticateToken, async (req, res) => {
   }
   try {
     const student = await getStudent({ username: req.params.username });
-    console.log(student)
     if (student.success) {
       res.status(200).json(student.student);
     } else {
@@ -495,6 +507,23 @@ app.delete('/api/admin/:username', authenticateToken, async (req, res) => {
 
 
 
+// create course
+app.post('/api/course', authenticateToken, async (req, res) => {
+  if (req.user.type !== "program-incharge") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await createCourse(req.body);
+    if (result.success) {
+      res.status(201).json(result.course);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // get course by course code
 app.get('/api/course/:courseCode', authenticateToken, async (req, res) => {
   try {
@@ -509,10 +538,63 @@ app.get('/api/course/:courseCode', authenticateToken, async (req, res) => {
   }
 });
 
+// update course by course code
+app.put('/api/course/:courseCode', authenticateToken, async (req, res) => {
+  if (req.user.type !== "program-incharge") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await updateCourse({ courseCode: req.params.courseCode }, req.body);
+    if (result.success) {
+      res.status(200).json(result.course);
+    } else {
+      res.status(404).json({ message: "Course not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// delete course by course code
+app.delete('/api/course/:courseCode', authenticateToken, async (req, res) => {
+  if (req.user.type !== "program-incharge") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await deleteCourse({ courseCode: req.params.courseCode });
+    if (result.success) {
+      res.status(200).json(result.course);
+    } else {
+      res.status(404).json({ message: "Course not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+
+
+// create mcq question
+app.post('/api/mcq-question', authenticateToken, async (req, res) => {
+  if (req.user.type !== "program-incharge") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await createMCQQuestion(req.body);
+    if (result.success) {
+      res.status(201).json(result.mcqQuestion);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // get mcq question by object id
 app.get('/api/mcq-question/:oid', authenticateToken, async (req, res) => {
   try {
-    const mcqQuestion = await getMCQQuestion({ _id: ObjectId(req.params.oid) });
+    const mcqQuestion = await getMCQQuestion({ _id: req.params.oid });
     if (mcqQuestion.success) {
       res.status(200).json(mcqQuestion.mcqQuestion);
     } else {
@@ -523,10 +605,63 @@ app.get('/api/mcq-question/:oid', authenticateToken, async (req, res) => {
   }
 });
 
+// update mcq question by object id
+app.put('/api/mcq-question/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "program-incharge") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await updateMCQQuestion({ _id: req.params.oid }, req.body);
+    if (result.success) {
+      res.status(200).json(result.mcqQuestion);
+    } else {
+      res.status(404).json({ message: "MCQ Question not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// delete mcq question by object id
+app.delete('/api/mcq-question/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "program-incharge") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await deleteMCQQuestion({ _id: req.params.oid });
+    if (result.success) {
+      res.status(200).json(result.mcqQuestion);
+    } else {
+      res.status(404).json({ message: "MCQ Question not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+
+
+// create code question
+app.post('/api/code-question', authenticateToken, async (req, res) => {
+  if (req.user.type !== "professor") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await createCodeQuestion(req.body);
+    if (result.success) {
+      res.status(201).json(result.codeQuestion);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // get code question by object id
 app.get('/api/code-question/:oid', authenticateToken, async (req, res) => {
   try {
-    const codeQuestion = await getCodeQuestion({ _id: ObjectId(req.params.oid) });
+    const codeQuestion = await getCodeQuestion({ _id: req.params.oid });
     if (codeQuestion.success) {
       res.status(200).json(codeQuestion.codeQuestion);
     } else {
@@ -537,10 +672,63 @@ app.get('/api/code-question/:oid', authenticateToken, async (req, res) => {
   }
 });
 
+// update code question by object id
+app.put('/api/code-question/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "professor") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await updateCodeQuestion({ _id: req.params.oid }, req.body);
+    if (result.success) {
+      res.status(200).json(result.codeQuestion);
+    } else {
+      res.status(404).json({ message: "Code Question not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// delete code question by object id
+app.delete('/api/code-question/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "professor") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await deleteCodeQuestion({ _id: req.params.oid });
+    if (result.success) {
+      res.status(200).json(result.codeQuestion);
+    } else {
+      res.status(404).json({ message: "Code Question not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+
+
+// create exam
+app.post('/api/exam', authenticateToken, async (req, res) => {
+  if (req.user.type !== "professor") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await createExam(req.body);
+    if (result.success) {
+      res.status(201).json(result.exam);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // get exam by object id
 app.get('/api/exam/:oid', authenticateToken, async (req, res) => {
   try {
-    const exam = await getExam({ _id: ObjectId(req.params.oid) });
+    const exam = await getExam({ _id: req.params.oid });
     if (exam.success) {
       res.status(200).json(exam.exam);
     } else {
@@ -569,10 +757,86 @@ app.get('/api/exams/:courseCode', authenticateToken, async (req, res) => {
   }
 });
 
+// get all exams of a student by student id / username
+app.get('/api/exams/', authenticateToken, async (req, res) => {
+  let { username, studentId } = req.query;
+  try {
+    const student = await getStudent(studentId ? { _id: studentId } : { username: username });
+    if (!student.success) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    student.student.enrolledCourseIds = await Promise.all(student.student.enrolledCourseIds.map(async (courseId) => {
+      const course = await getCourse({ _id: courseId });
+      return course.success ? course.course : null;
+    }));
+    const examsIds = student.student.enrolledCourseIds.map((course) => course.examIds).flat();
+    const exams = await Promise.all(examsIds.map(async (examId) => {
+      const exam = await getExam({ _id: examId });
+      return exam.success ? exam.exam : null;
+    }));
+    res.status(200).json(exams);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// update exam by object id
+app.put('/api/exam/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "professor") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await updateExam({ _id: req.params.oid }, req.body);
+    if (result.success) {
+      res.status(200).json(result.exam);
+    } else {
+      res.status(404).json({ message: "Exam not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// delete exam by object id
+app.delete('/api/exam/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "professor") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await deleteExam({ _id: req.params.oid });
+    if (result.success) {
+      res.status(200).json(result.exam);
+    } else {
+      res.status(404).json({ message: "Exam not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+
+
+// create result
+app.post('/api/result', authenticateToken, async (req, res) => {
+  if (req.user.type !== "student") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await createResult(req.body);
+    if (result.success) {
+      res.status(201).json(result.result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // get result by object id
 app.get('/api/result/:oid', authenticateToken, async (req, res) => {
   try {
-    const result = await getResult({ _id: ObjectId(req.params.oid) });
+    const result = await getResult({ _id: req.params.oid });
     if (result.success) {
       res.status(200).json(result.result);
     } else {
@@ -583,14 +847,36 @@ app.get('/api/result/:oid', authenticateToken, async (req, res) => {
   }
 });
 
-// get result by exam id and student username
-app.get('/api/result/:examId/:username', authenticateToken, async (req, res) => {
+// get all results of an exam by exam id
+app.get('/api/results/:examId', authenticateToken, async (req, res) => {
   try {
-    const student = await getStudent({ username: req.params.username });
-    if (!student.success) {
-      return res.status(404).json({ message: "Student not found" });
+    const exam = await getExam({ _id: req.params.examId });
+    if (!exam.success) {
+      return res.status(404).json({ message: "Exam not found" });
     }
-    const result = await getResult({ examId: ObjectId(req.params.examId), studentId: student.student._id });
+    exam.exam.resultIds = await Promise.all(exam.exam.resultIds.map(async (resultId) => {
+      const result = await getResult({ _id: resultId });
+      return result.success ? result.result : null;
+    }));
+    const results = exam.exam.resultIds;
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// get result by exam id and student id / username
+app.get('/api/result/', authenticateToken, async (req, res) => {
+  let { examId, username, studentId } = req.query;
+  try {
+    if (!studentId) {
+      const student = await getStudent({ username: username });
+      if (!student.success) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+      studentId = student.student._id;
+    }
+    const result = await getResult({ examId, studentId });
     if (result.success) {
       res.status(200).json(result.result);
     } else {
@@ -598,13 +884,64 @@ app.get('/api/result/:examId/:username', authenticateToken, async (req, res) => 
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+// update result by object id
+app.put('/api/result/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "student") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await updateResult({ _id: req.params.oid }, req.body);
+    if (result.success) {
+      res.status(200).json(result.result);
+    } else {
+      res.status(404).json({ message: "Result not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// delete result by object id
+app.delete('/api/result/:oid', authenticateToken, async (req, res) => {
+  if (req.user.type !== "student") {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const result = await deleteResult({ _id: req.params.oid });
+    if (result.success) {
+      res.status(200).json(result.result);
+    } else {
+      res.status(404).json({ message: "Result not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+
+
+
+// create appeal
+app.post('/api/appeal', authenticateToken, async (req, res) => {
+  try {
+    const result = await createAppeal(req.body);
+    if (result.success) {
+      res.status(201).json(result.appeal);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
 // get appeal by object id
 app.get('/api/appeal/:oid', authenticateToken, async (req, res) => {
   try {
-    const appeal = await getAppeal({ _id: ObjectId(req.params.oid) });
+    const appeal = await getAppeal({ _id: req.params.oid });
     if (appeal.success) {
       res.status(200).json(appeal.appeal);
     } else {
@@ -615,19 +952,75 @@ app.get('/api/appeal/:oid', authenticateToken, async (req, res) => {
   }
 });
 
-// get appeals by exam id
+// get appeal of a result by exam id and student id / username
+app.get('/api/appeal/', authenticateToken, async (req, res) => {
+  let { examId, username, studentId } = req.query;
+  try {
+    if (!studentId) {
+      const student = await getStudent({ username });
+      if (!student.success) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+      studentId = student.student._id;
+    }
+    const result = await getResult({ examId, studentId });
+    if (!result.success) {
+      return res.status(404).json({ message: "Result not found" });
+    }
+    const appeal = await getAppeal({ resultId: result.result._id });
+    if (appeal.success) {
+      res.status(200).json(appeal.appeal);
+    } else {
+      res.status(404).json({ message: "Appeal not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// get all appeals of an exam by exam id
 app.get('/api/appeals/:examId', authenticateToken, async (req, res) => {
   try {
-    const exam = await getExam({ _id: ObjectId(req.params.examId) });
+    const exam = await getExam({ _id: req.params.examId });
     if (!exam.success) {
       return res.status(404).json({ message: "Exam not found" });
     }
-    // POPULATE TODOS
-    // exam.exam.populate('appealIds');
+    exam.exam.appealIds = await Promise.all(exam.exam.appealIds.map(async (appealId) => {
+      const appeal = await getAppeal({ _id: appealId });
+      return appeal.success ? appeal.appeal : null;
+    }));
     const appeals = exam.exam.appealIds;
     res.status(200).json(appeals);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+// update appeal by object id
+app.put('/api/appeal/:oid', authenticateToken, async (req, res) => {
+  try {
+    const result = await updateAppeal({ _id: req.params.oid }, req.body);
+    if (result.success) {
+      res.status(200).json(result.appeal);
+    } else {
+      res.status(404).json({ message: "Appeal not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// delete appeal by object id
+app.delete('/api/appeal/:oid', authenticateToken, async (req, res) => {
+  try {
+    const result = await deleteAppeal({ _id: req.params.oid });
+    if (result.success) {
+      res.status(200).json(result.appeal);
+    } else {
+      res.status(404).json({ message: "Appeal not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
