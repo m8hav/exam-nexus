@@ -37,7 +37,7 @@ export const createStudent = async (studentInfo) => {
     const newStudent = await Student.create(studentInfo);
     return {
       success: true,
-      student: newStudent
+      data: newStudent
     };
   } catch (error) {
     return {
@@ -53,7 +53,7 @@ export const createProfessor = async (professorInfo) => {
     const newProfessor = await Professor.create(professorInfo);
     return {
       success: true,
-      professor: newProfessor
+      data: newProfessor
     };
   } catch (error) {
     return {
@@ -69,7 +69,7 @@ export const createProgramIncharge = async (programInchargeInfo) => {
     const newProgramIncharge = await ProgramIncharge.create(programInchargeInfo);
     return {
       success: true,
-      programIncharge: newProgramIncharge
+      data: newProgramIncharge
     };
   } catch (error) {
     return {
@@ -85,7 +85,7 @@ export const createAdmin = async (adminInfo) => {
     const newAdmin = await Admin.create(adminInfo);
     return {
       success: true,
-      admin: newAdmin
+      data: newAdmin
     };
   } catch (error) {
     return {
@@ -121,7 +121,7 @@ export const createCourse = async (courseInfo) => {
     };
     return {
       success: true,
-      course: newCourse
+      data: newCourse
     };
   } catch (error) {
     return {
@@ -137,7 +137,7 @@ export const createMCQQuestion = async (mcqQuestionInfo) => {
     const newMCQQuestion = await MCQQuestion.create(mcqQuestionInfo);
     return {
       success: true,
-      mcqQuestion: newMCQQuestion
+      data: newMCQQuestion
     };
   } catch (error) {
     return {
@@ -153,7 +153,7 @@ export const createCodeQuestion = async (codeQuestionInfo) => {
     const newCodeQuestion = await CodeQuestion.create(codeQuestionInfo);
     return {
       success: true,
-      codeQuestion: newCodeQuestion
+      data: newCodeQuestion
     };
   } catch (error) {
     return {
@@ -178,7 +178,7 @@ export const createExam = async (examInfo) => {
     await course.save();
     return {
       success: true,
-      exam: newExam
+      data: newExam
     };
   } catch (error) {
     return {
@@ -248,7 +248,7 @@ export const createResult = async (resultInfo) => {
     await calculateRanks(exam);
     return {
       success: true,
-      result: await Result.findById(newResult._id)
+      data: await Result.findById(newResult._id)
     };
   } catch (error) {
     await Result.deleteOne({ examId: resultInfo.examId, studentId: resultInfo.studentId });
@@ -283,7 +283,7 @@ export const createAppeal = async (appealInfo) => {
     await exam.save();
     return {
       success: true,
-      appeal: newAppeal
+      data: newAppeal
     };
   } catch (error) {
     await Appeal.deleteOne({ resultId: appealInfo.resultId });
@@ -304,7 +304,7 @@ export const getStudent = async (studentInfo) => {
   if (student) {
     return {
       success: true,
-      student: student
+      data: student
     };
   } else {
     return {
@@ -320,7 +320,7 @@ export const getStudents = async (studentsInfo) => {
   if (students && students.length > 0) {
     return {
       success: true,
-      students: students
+      data: students
     };
   } else {
     return {
@@ -336,7 +336,7 @@ export const getProfessor = async (professorInfo) => {
   if (professor) {
     return {
       success: true,
-      professor: professor
+      data: professor
     };
   } else {
     return {
@@ -352,7 +352,7 @@ export const getProgramIncharge = async (programInchargeInfo) => {
   if (programIncharge) {
     return {
       success: true,
-      programIncharge: programIncharge
+      data: programIncharge
     };
   } else {
     return {
@@ -368,7 +368,7 @@ export const getAdmin = async (adminInfo) => {
   if (admin) {
     return {
       success: true,
-      admin: admin
+      data: admin
     };
   } else {
     return {
@@ -384,7 +384,7 @@ export const getCourse = async (courseInfo) => {
   if (course) {
     return {
       success: true,
-      course: course
+      data: course
     };
   } else {
     return {
@@ -400,7 +400,7 @@ export const getMCQQuestion = async (mcqQuestionInfo) => {
   if (mcqQuestion) {
     return {
       success: true,
-      mcqQuestion: mcqQuestion
+      data: mcqQuestion
     };
   } else {
     return {
@@ -416,7 +416,7 @@ export const getCodeQuestion = async (codeQuestionInfo) => {
   if (codeQuestion) {
     return {
       success: true,
-      codeQuestion: codeQuestion
+      data: codeQuestion
     };
   } else {
     return {
@@ -436,7 +436,7 @@ export const getExam = async (examInfo) => {
     await exam.populate('resultIds');
     return {
       success: true,
-      exam: exam
+      data: exam
     };
   } else {
     return {
@@ -452,7 +452,7 @@ export const getResult = async (resultInfo) => {
   if (result) {
     return {
       success: true,
-      result: result
+      data: result
     };
   } else {
     return {
@@ -468,7 +468,7 @@ export const getAppeal = async (appealInfo) => {
   if (appeal) {
     return {
       success: true,
-      appeal: appeal
+      data: appeal
     };
   } else {
     return {
@@ -491,7 +491,7 @@ export const updateStudent = async (studentInfo, update) => {
       if (updateResponse.acknowledged) {
         return {
           success: true,
-          student: await Student.findById(student._id)
+          data: await Student.findById(student._id)
         };
       }
       throw new Error("Couldn't update student for unknown reason");
@@ -518,7 +518,7 @@ export const updateProfessor = async (professorInfo, update) => {
       if (updateResponse.acknowledged) {
         return {
           success: true,
-          professor: await Professor.findById(professor._id)
+          data: await Professor.findById(professor._id)
         };
       }
       throw new Error("Couldn't update professor for unknown reason");
@@ -545,7 +545,7 @@ export const updateProgramIncharge = async (programInchargeInfo, update) => {
       if (updateResponse.acknowledged) {
         return {
           success: true,
-          programIncharge: await ProgramIncharge.findById(programIncharge._id)
+          data: await ProgramIncharge.findById(programIncharge._id)
         };
       }
       throw new Error("Couldn't update program incharge for unknown reason");
@@ -564,7 +564,7 @@ export const updateAdmin = async (adminInfo, update) => {
       if (updateResponse.acknowledged) {
         return {
           success: true,
-          admin: await Admin.findById(admin._id)
+          data: await Admin.findById(admin._id)
         };
       }
       throw new Error("Couldn't update admin for unknown reason");
@@ -591,7 +591,7 @@ export const updateCourse = async (courseInfo, update) => {
       if (updateResponse.acknowledged) {
         return {
           success: true,
-          course: await Course.findById(course._id)
+          data: await Course.findById(course._id)
         };
       }
       throw new Error("Couldn't update course for unknown reason");
@@ -620,7 +620,7 @@ export const updateMCQQuestion = async (mcqQuestionInfo, update) => {
         recalculateExamResults(exam._id);
         return {
           success: true,
-          mcqQuestion: await MCQQuestion.findById(mcqQuestion._id)
+          data: await MCQQuestion.findById(mcqQuestion._id)
         };
       }
       throw new Error("Couldn't update MCQ question for unknown reason");
@@ -649,7 +649,7 @@ export const updateCodeQuestion = async (codeQuestionInfo, update) => {
         recalculateExamResults(exam._id);
         return {
           success: true,
-          codeQuestion: await CodeQuestion.findById(codeQuestion._id)
+          data: await CodeQuestion.findById(codeQuestion._id)
         };
       }
       throw new Error("Couldn't update code question for unknown reason");
@@ -675,7 +675,7 @@ export const updateExam = async (examInfo, update) => {
       if (updateResponse.acknowledged) {
         return {
           success: true,
-          exam: await Exam.findById(exam._id)
+          data: await Exam.findById(exam._id)
         };
       }
       throw new Error("Couldn't update exam for unknown reason");
@@ -726,7 +726,7 @@ export const recalculateExamResults = async (examId) => {
     console.log("Recalculated results of exam: " + examId);
     return {
       success: true,
-      exam: await Exam.findById(exam._id)
+      data: await Exam.findById(exam._id)
     };
   } catch (error) {
     return {
@@ -747,7 +747,7 @@ export const updateResult = async (resultInfo, update) => {
         recalculateExamResults(exam._id);
         return {
           success: true,
-          result: await Result.findById(result._id)
+          data: await Result.findById(result._id)
         };
       }
       throw new Error("Couldn't update result for unknown reason");
@@ -773,7 +773,7 @@ export const updateAppeal = async (appealInfo, update) => {
       if (updateResponse.acknowledged) {
         return {
           success: true,
-          appeal: await Appeal.findById(appeal._id)
+          data: await Appeal.findById(appeal._id)
         };
       }
       throw new Error("Couldn't update appeal for unknown reason");
@@ -800,7 +800,7 @@ export const deleteStudent = async (studentInfo) => {
     await Student.deleteOne(studentInfo);
     return {
       success: true,
-      message: "Student deleted"
+      data: "Student deleted"
     };
   } catch (error) {
     return {
@@ -816,7 +816,7 @@ export const deleteProfessor = async (professorInfo) => {
     await Professor.deleteOne(professorInfo);
     return {
       success: true,
-      message: "Professor deleted"
+      data: "Professor deleted"
     };
   } catch (error) {
     return {
@@ -832,7 +832,7 @@ export const deleteProgramIncharge = async (programInchargeInfo) => {
     await ProgramIncharge.deleteOne(programInchargeInfo);
     return {
       success: true,
-      message: "Program Incharge deleted"
+      data: "Program Incharge deleted"
     };
   } catch (error) {
     return {
@@ -848,7 +848,7 @@ export const deleteAdmin = async (adminInfo) => {
     await Admin.deleteOne(adminInfo);
     return {
       success: true,
-      message: "Admin deleted"
+      data: "Admin deleted"
     };
   } catch (error) {
     return {
@@ -864,7 +864,7 @@ export const deleteCourse = async (courseInfo) => {
     await Course.deleteOne(courseInfo);
     return {
       success: true,
-      message: "Course deleted"
+      data: "Course deleted"
     };
   } catch (error) {
     return {
@@ -880,7 +880,7 @@ export const deleteMCQQuestion = async (mcqQuestionInfo) => {
     await MCQQuestion.deleteOne(mcqQuestionInfo);
     return {
       success: true,
-      message: "MCQ Question deleted"
+      data: "MCQ Question deleted"
     };
   } catch (error) {
     return {
@@ -896,7 +896,7 @@ export const deleteCodeQuestion = async (codeQuestionInfo) => {
     await CodeQuestion.deleteOne(codeQuestionInfo);
     return {
       success: true,
-      message: "Code Question deleted"
+      data: "Code Question deleted"
     };
   } catch (error) {
     return {
@@ -912,7 +912,7 @@ export const deleteExam = async (examInfo) => {
     await Exam.deleteOne(examInfo);
     return {
       success: true,
-      message: "Exam deleted"
+      data: "Exam deleted"
     };
   } catch (error) {
     return {
@@ -928,7 +928,7 @@ export const deleteResult = async (resultInfo) => {
     await Result.deleteOne(resultInfo);
     return {
       success: true,
-      message: "Result deleted"
+      data: "Result deleted"
     };
   } catch (error) {
     return {
@@ -944,7 +944,7 @@ export const deleteAppeal = async (appealInfo) => {
     await Appeal.deleteOne(appealInfo);
     return {
       success: true,
-      message: "Appeal deleted"
+      data: "Appeal deleted"
     };
   } catch (error) {
     return {
