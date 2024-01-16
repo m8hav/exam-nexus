@@ -16,7 +16,6 @@ function AddExam() {
     });
     if (response.ok) {
       const course = await response.json();
-      // console.log(course);
       return course.data._id;
     } else {
       console.log("Error");
@@ -127,7 +126,6 @@ function AddExam() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
         mcqQuestionIds.push(data.data._id);
       } else {
         console.log("Error");
@@ -179,15 +177,13 @@ function AddExam() {
     });
     const data = await response.json();
     if (response.ok) {
-      console.log(data.data);
       // clear all fields
       for (let i = 0; i < e.target.length; i++) {
         e.target[i].value = '';
         e.target[i].checked = false;
       }
     } else {
-      console.log(data.message)
-      console.log("Error");
+      console.log("Error: " + data.message);
     }
   }
 

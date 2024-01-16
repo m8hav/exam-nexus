@@ -1378,3 +1378,5 @@ export const deleteAppeal = async (appealInfo) => {
 //   }],
 //   marks: 1
 // })
+
+// console.log(await getAllExamsByStudentId("65a3c66dff5384c47a380db5"))
