@@ -12,8 +12,10 @@ import ManageAdmins from './pages/admin/ManageAdmins'
 import "./pages/admin/ManageUsers.scss"
 import "./pages/program-incharge/ManageCourses.scss"
 import "./pages/program-incharge/AddCourse.scss"
+import "./pages/professor/AddExam.scss"
 import ManageCourses from './pages/program-incharge/ManageCourses'
 import AddCourse from './pages/program-incharge/AddCourse'
+import AddExam from './pages/professor/AddExam'
 
 function Foreground() {
   const {currentUser} = useContext(AuthContext);
@@ -31,6 +33,7 @@ function Foreground() {
             <Route path='manageAdmins/*' element={<ManageAdmins />} />
             <Route path='manageCourses/*' element={<ManageCourses />} />
             <Route path='addCourse/*' element={<AddCourse />} />
+            <Route path='addExam/*' element={<AddExam />} />
             <Route path='logout' element={<Logout />}></Route>
           </Route>
         </Routes>

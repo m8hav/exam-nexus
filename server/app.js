@@ -659,7 +659,7 @@ app.delete('/api/course/:courseCode', authenticateToken, async (req, res) => {
 
 // create mcq question
 app.post('/api/mcq-question', authenticateToken, async (req, res) => {
-  if (req.user.type !== "program-incharge") {
+  if (!(["program-incharge", "professor"].includes(req.user.type))) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
@@ -690,7 +690,7 @@ app.get('/api/mcq-question/:oid', authenticateToken, async (req, res) => {
 
 // update mcq question by object id
 app.put('/api/mcq-question/:oid', authenticateToken, async (req, res) => {
-  if (req.user.type !== "program-incharge") {
+  if (!(["program-incharge", "professor"].includes(req.user.type))) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   try {
