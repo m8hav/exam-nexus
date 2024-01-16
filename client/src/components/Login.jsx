@@ -75,7 +75,7 @@ function Login() {
           <label htmlFor="username">User Type:</label>
           <select name="type" id="user-type-select">
             <option value="student">Student</option>
-            <option value="teacher">Professor</option>
+            <option value="professor">Professor</option>
             <option value="program-incharge">Program Incharge</option>
             <option value="admin">Admin</option>
           </select>

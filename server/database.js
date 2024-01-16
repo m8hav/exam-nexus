@@ -449,7 +449,6 @@ export const getCourse = async (courseInfo) => {
     await course.populate('professorId');
     await course.populate('studentIds');
     await course.populate('examIds');
-    console.log(course)
     return {
       success: true,
       data: course
@@ -526,6 +525,23 @@ export const getExam = async (examInfo) => {
     return {
       success: false,
       message: "Exam not found"
+    };
+  }
+}
+
+// get all exams by student id / read all exams by student id
+export const getAllExamsByStudentId = async (studentId) => {
+  const courses = await Course.find({ studentIds: { $elemMatch: { $eq: studentId } } });
+  const exams = await Exam.find({ courseId: { $in: courses.map(course => course._id) } });
+  if (exams && exams.length > 0) {
+    return {
+      success: true,
+      data: exams
+    };
+  } else {
+    return {
+      success: false,
+      message: "Exams not found"
     };
   }
 }

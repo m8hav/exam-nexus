@@ -46,7 +46,7 @@ function StudentDashboard() {
           <button className='quick-action-btn' onClick={handleViewPastExamsResults}>View Past Exams Results</button>
         </div>
       </div>
-      <Calendar />
+      <Calendar type="student" user={currentUser} />
     </div>
   )
 }

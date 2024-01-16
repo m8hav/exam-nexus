@@ -20,7 +20,7 @@ function ProfessorDashboard() {
   return (
     <div className='dashboard'>
       <div className="user-info">
-        <p className='title'>Student Info</p>
+        <p className='title'>Professor Info</p>
         <table>
           <tbody>
             <tr>
@@ -46,7 +46,7 @@ function ProfessorDashboard() {
           <button className='quick-action-btn' onClick={handleViewPastExamsResults}>View Past Exams Results</button>
         </div>
       </div>
-      <Calendar />
+      <Calendar type="professor" user={currentUser}/>
     </div>
   )
 }

@@ -6,10 +6,7 @@ function AddCourse() {
 
   const { token } = getUserDetails();
 
-  const [studentIds, setStudentIds] = useState([]);
-  const [professorId, setProfessorId] = useState({});
-
-  const getProfessor = async (username) => {
+  const getProfessorId = async (username) => {
     if (!token) return;
     let url = `http://localhost:8080/api/professor/${username}`
     const response = await fetch(url, {
@@ -20,10 +17,10 @@ function AddCourse() {
       }
     });
     const data = await response.json();
-    setProfessorId(data.data);
+    return data.data._id;
   }
 
-  const appendStudentId = async (username) => {
+  const getStudentIds = async (username) => {
     if (!token) return;
     let url = `http://localhost:8080/api/student/${username}`
     const response = await fetch(url, {
@@ -34,30 +31,33 @@ function AddCourse() {
       }
     });
     const data = await response.json();
-    setStudentIds([...studentIds, data.data._id]);
+    return data.data._id;
   }
 
   const handleAddCourse = async (e) => {
     e.preventDefault();
+
+    let studentIds = [];
+    
     console.log("Add Course")
 
-    const studentIds = e.target[4].value.split(",").map((student) => student.trim());
+    const studentUsernames = e.target[4].value.split(",").map((student) => student.trim());
+    console.log(studentUsernames)
 
-    for (let i = 0; i < studentIds.length; i++) {
-      appendStudentId(studentIds[i]);
+    for (const username of studentUsernames) {
+      studentIds.push(await getStudentIds(username));
     }
 
-    getProfessor(e.target[2].value);
+    await getProfessorId(e.target[2].value);
 
-    let course = {
-      code: e.target[0].value,
+    let courseInfo = {
+      courseCode: e.target[0].value,
       name: e.target[1].value,
-      professor: professorId._id,
+      professorId: await getProfessorId(e.target[2].value),
       syllabus: e.target[3].value.split(",").map((syllabus) => syllabus.trim()),
       studentIds: studentIds
     }
-    console.log(course)
-    return;
+    console.log(courseInfo)
 
     let url = "http://localhost:8080/api/course"
     const response = await fetch(url, {
@@ -66,10 +66,22 @@ function AddCourse() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify(course)
+      body: JSON.stringify(courseInfo)
     });
     const data = await response.json();
-
+    if (response.ok) {
+      console.log("Course added successfully")
+      console.log(data.data)
+      e.target[0].value = "";
+      e.target[1].value = "";
+      e.target[2].value = "";
+      e.target[3].value = "";
+      e.target[4].value = "";
+    }
+    else {
+      console.log("Error adding course")
+      console.log(data)
+    }
   }
 
   return (

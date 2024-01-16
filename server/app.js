@@ -840,19 +840,35 @@ app.get('/api/exams/:courseCode', authenticateToken, async (req, res) => {
   }
 });
 
-// get all exams of a student by student id / username
+// get all exams of a student by student id / studentUsername or professor by professor id
 app.get('/api/exams/', authenticateToken, async (req, res) => {
-  let { username, studentId } = req.query;
+  let { studentUsername, studentId, professorId } = req.query;
+  let courses;
   try {
-    const res1 = await getStudent(studentId ? { _id: studentId } : { username: username });
+    let res1;
+    if (studentId) {
+      res1 = await getStudent({ _id: studentId });
+      courses = await Promise.all(res1.data.enrolledCourseIds.map(async (courseId) => {
+        const course = await getCourse({ _id: courseId });
+        return course.success ? course.data : null;
+      }));
+    } else if (professorId) {
+      res1 = await getProfessor({ _id: professorId });
+      courses = await Promise.all(res1.data.courseIds.map(async (courseId) => {
+        const course = await getCourse({ _id: courseId });
+        return course.success ? course.data : null;
+      }));
+    } else {
+      res1 = await getStudent({ username: studentUsername });
+      courses = await Promise.all(res1.data.enrolledCourseIds.map(async (courseId) => {
+        const course = await getCourse({ _id: courseId });
+        return course.success ? course.data : null;
+      }));
+    }
     if (!res1.success) {
       return res.status(404).json(res1);
     }
-    res1.data.enrolledCourseIds = await Promise.all(res1.data.enrolledCourseIds.map(async (courseId) => {
-      const course = await getCourse({ _id: courseId });
-      return course.success ? course.data : null;
-    }));
-    const examsIds = res1.data.enrolledCourseIds.map((course) => course.examIds).flat();
+    const examsIds = courses.map((course) => course.examIds).flat();
     const exams = await Promise.all(examsIds.map(async (examId) => {
       const exam = await getExam({ _id: examId });
       return exam.success ? exam.data : null;

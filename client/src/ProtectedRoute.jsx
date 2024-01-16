@@ -6,7 +6,7 @@ function ProtectedRoute({ children }) {
   const { currentUser } = useContext(AuthContext);
 
   if (!currentUser) {
-    console.log("Not logged in. Navigating to home page");
+    // console.log("Not logged in. Navigating to home page");
     return <Navigate to={"/"} />
   }
   return children;

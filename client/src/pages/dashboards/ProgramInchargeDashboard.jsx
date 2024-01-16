@@ -16,7 +16,7 @@ function ProgramInchargeDashboard() {
   return (
     <div className='dashboard'>
       <div className="user-info">
-        <p className='title'>Student Info</p>
+        <p className='title'>Program Incharge Info</p>
         <table>
           <tbody>
             <tr>
@@ -40,7 +40,7 @@ function ProgramInchargeDashboard() {
           <button className='quick-action-btn' onClick={handleManageCourses}>Manage Courses</button>
         </div>
       </div>
-      <Calendar />
+      {/* <Calendar type="program-incharge" /> */}
     </div>
   )
 }
